@@ -36,7 +36,7 @@
   dispatch_source_t dispatchObj_source_;
   NSError *endError_;              // 64 bit
 @public  // here be hacks
-  id<PTChannelDelegate> delegate_; // 64 bit
+  __weak id<PTChannelDelegate> delegate_; // 64 bit
   uint8_t delegateFlags_;             // 8 bit
 @private
   uint8_t connState_;                 // 8 bit

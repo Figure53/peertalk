@@ -16,7 +16,7 @@
 @interface PTChannel : NSObject
 
 // Delegate
-@property (strong) id<PTChannelDelegate> delegate;
+@property (weak) id<PTChannelDelegate> delegate;
 
 // Communication protocol. Must not be nil.
 @property PTProtocol *protocol;
