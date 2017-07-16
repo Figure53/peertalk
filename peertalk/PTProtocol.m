@@ -244,7 +244,7 @@ static void _release_queue_local_protocol(void *objcobj) {
   __block dispatch_data_t allData = NULL;
   dispatch_io_read(channel, 0, payloadSize, queue_, ^(bool done, dispatch_data_t data, int error) {
     //NSLog(@"dispatch_io_read: done=%d data=%p error=%d", done, data, error);
-    size_t dataSize = dispatch_data_get_size(data);
+    size_t dataSize = data ? dispatch_data_get_size(data) : 0;
     
     if (dataSize) {
       if (!allData) {
@@ -306,7 +306,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 
 - (void)readAndDiscardDataOfSize:(size_t)size overChannel:(dispatch_io_t)channel callback:(void(^)(NSError*, BOOL))callback {
   dispatch_io_read(channel, 0, size, queue_, ^(bool done, dispatch_data_t data, int error) {
-    if (done && callback) {
+    if (done && callback && data) {
       size_t dataSize = dispatch_data_get_size(data);
       callback(error == 0 ? nil : [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:error userInfo:nil], dataSize == 0);
     }
