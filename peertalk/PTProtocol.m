@@ -34,6 +34,11 @@ typedef struct _PTFrame {
 - (dispatch_data_t)createDispatchDataWithFrameOfType:(uint32_t)type frameTag:(uint32_t)frameTag payload:(dispatch_data_t)payload;
 @end
 
+/// same as `dispatch_data_get_size`, but won't crash when data is nil, returning 0 instead
+static inline size_t _pt_dispatch_data_get_size(dispatch_data_t _Nullable data)
+{
+  return (data == nil) ? 0 : dispatch_data_get_size(data);
+}
 
 static void _release_queue_local_protocol(void *objcobj) {
   if (objcobj) {
@@ -122,7 +127,7 @@ static void _release_queue_local_protocol(void *objcobj) {
   frame->tag = htonl(frameTag);
   
   if (payload) {
-    size_t payloadSize = dispatch_data_get_size(payload);
+    size_t payloadSize = _pt_dispatch_data_get_size(payload);
     assert(payloadSize <= UINT32_MAX);
     frame->payloadSize = htonl((uint32_t)payloadSize);
   } else {
@@ -172,7 +177,7 @@ static void _release_queue_local_protocol(void *objcobj) {
   
   dispatch_io_read(channel, 0, sizeof(PTFrame), queue_, ^(bool done, dispatch_data_t data, int error) {
     //NSLog(@"dispatch_io_read: done=%d data=%p error=%d", done, data, error);
-    size_t dataSize = data ? dispatch_data_get_size(data) : 0;
+    size_t dataSize = _pt_dispatch_data_get_size(data);
     
     if (dataSize) {
       if (!allData) {
@@ -202,7 +207,7 @@ static void _release_queue_local_protocol(void *objcobj) {
         return;
       }
       
-      if (!allData || dispatch_data_get_size(allData) < sizeof(PTFrame)) {
+      if (!allData || _pt_dispatch_data_get_size(allData) < sizeof(PTFrame)) {
 #if PT_DISPATCH_RETAIN_RELEASE
         if (allData) dispatch_release(allData);
 #endif
@@ -244,7 +249,7 @@ static void _release_queue_local_protocol(void *objcobj) {
   __block dispatch_data_t allData = NULL;
   dispatch_io_read(channel, 0, payloadSize, queue_, ^(bool done, dispatch_data_t data, int error) {
     //NSLog(@"dispatch_io_read: done=%d data=%p error=%d", done, data, error);
-    size_t dataSize = data ? dispatch_data_get_size(data) : 0;
+    size_t dataSize = _pt_dispatch_data_get_size(data);
     
     if (dataSize) {
       if (!allData) {
@@ -307,7 +312,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 - (void)readAndDiscardDataOfSize:(size_t)size overChannel:(dispatch_io_t)channel callback:(void(^)(NSError*, BOOL))callback {
   dispatch_io_read(channel, 0, size, queue_, ^(bool done, dispatch_data_t data, int error) {
     if (done && callback && data) {
-      size_t dataSize = dispatch_data_get_size(data);
+      size_t dataSize = _pt_dispatch_data_get_size(data);
       callback(error == 0 ? nil : [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:error userInfo:nil], dataSize == 0);
     }
   });

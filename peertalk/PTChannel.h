@@ -19,7 +19,7 @@
 @property (weak) id<PTChannelDelegate> delegate;
 
 // Communication protocol. Must not be nil.
-@property PTProtocol *protocol;
+@property (strong) PTProtocol *protocol;
 
 // YES if this channel is a listening server
 @property (readonly) BOOL isListening;
