@@ -331,8 +331,14 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 
 
 - (BOOL)openOnQueue:(dispatch_queue_t)queue error:(NSError**)error onEnd:(void(^)(NSError*))onEnd {
+#if DEBUG
   assert(queue != nil);
   assert(channel_ == nil);
+#else
+  if (queue == nil || channel_ != nil) {
+    return NO;
+  }
+#endif
   queue_ = queue;
   
   // Create socket
@@ -442,7 +448,13 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 
 
 - (void)scheduleReadPacketWithBroadcastHandler:(void(^)(NSDictionary *packet))broadcastHandler {
+#if DEBUG
   assert(isReadingPackets_ == NO);
+#else
+  if (isReadingPackets_) {
+    return;
+  }
+#endif
   
   [self scheduleReadPacketWithCallback:^(NSError *error, NSDictionary *packet, uint32_t packetTag) {
     // Interpret the package we just received

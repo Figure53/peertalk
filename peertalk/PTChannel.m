@@ -123,7 +123,16 @@ static const uint8_t kUserInfoKey;
 
 
 - (void)setDispatchChannel:(dispatch_io_t)channel {
+#if DEBUG
   assert(connState_ == kConnStateConnecting || connState_ == kConnStateConnected || connState_ == kConnStateNone);
+#else
+  if (connState_ != kConnStateConnecting &&
+      connState_ != kConnStateConnected &&
+      connState_ != kConnStateNone) {
+    return;
+  }
+#endif
+  
   dispatch_io_t prevChannel = dispatchObj_channel_;
   if (prevChannel != channel) {
     dispatchObj_channel_ = channel;
@@ -139,7 +148,15 @@ static const uint8_t kUserInfoKey;
 
 
 - (void)setDispatchSource:(dispatch_source_t)source {
+#if DEBUG
   assert(connState_ == kConnStateListening || connState_ == kConnStateNone);
+#else
+  if (connState_ != kConnStateListening &&
+      connState_ != kConnStateNone) {
+    return;
+  }
+#endif
+  
   dispatch_source_t prevSource = dispatchObj_source_;
   if (prevSource != source) {
     dispatchObj_source_ = source;
@@ -191,7 +208,14 @@ static const uint8_t kUserInfoKey;
 
 
 - (void)connectToPort:(int)port overUSBHub:(PTUSBHub*)usbHub deviceID:(NSNumber*)deviceID callback:(void(^)(NSError *error))callback {
+#if DEBUG
   assert(protocol_ != NULL);
+#else
+  if (protocol_ == NULL) {
+    return;
+  }
+#endif
+  
   if (connState_ != kConnStateNone) {
     if (callback) callback([NSError errorWithDomain:NSPOSIXErrorDomain code:EPERM userInfo:nil]);
     return;
@@ -215,7 +239,14 @@ static const uint8_t kUserInfoKey;
 
 
 - (void)connectToPort:(in_port_t)port IPv4Address:(in_addr_t)address callback:(void(^)(NSError *error, PTAddress *address))callback {
+#if DEBUG
   assert(protocol_ != NULL);
+#else
+  if (protocol_ == NULL) {
+    return;
+  }
+#endif
+  
   if (connState_ != kConnStateNone) {
     if (callback) callback([NSError errorWithDomain:NSPOSIXErrorDomain code:EPERM userInfo:nil], nil);
     return;
@@ -288,8 +319,13 @@ static const uint8_t kUserInfoKey;
 
 
 - (void)listenOnPort:(in_port_t)port IPv4Address:(in_addr_t)address callback:(void(^)(NSError *error))callback {
-  
-  //assert(dispatchObj_source_ == nil);
+#if DEBUG
+  assert(dispatchObj_source_ == nil);
+#else
+  if (dispatchObj_source_ != nil) {
+    return;
+  }
+#endif
   
   // Create socket
   dispatch_fd_t fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -401,7 +437,15 @@ static const uint8_t kUserInfoKey;
     [peerChannel setConnState:kConnStateConnected];
     [peerChannel setDispatchChannel:dispatchChannel];
     
+#if DEBUG
     assert(((struct sockaddr_storage*)&addr)->ss_len == addrLen);
+#else
+    if (((struct sockaddr_storage*)&addr)->ss_len != addrLen) {
+      close(clientSocketFD);
+      return YES;
+    }
+#endif
+    
     PTAddress *address = [[PTAddress alloc] initWithSockaddr:(struct sockaddr_storage*)&addr];
     [delegate_ ioFrameChannel:self didAcceptConnection:peerChannel fromAddress:address];
     
@@ -545,9 +589,16 @@ static const uint8_t kUserInfoKey;
 @implementation PTAddress
 
 - (id)initWithSockaddr:(const struct sockaddr_storage*)addr {
-  if (!(self = [super init])) return nil;
+#if DEBUG
   assert(addr);
-  memcpy((void*)&sockaddr_, (const void*)addr, addr->ss_len);  
+#else
+  if (!addr) {
+    return nil;
+  }
+#endif
+  
+  if (!(self = [super init])) return nil;
+  memcpy((void*)&sockaddr_, (const void*)addr, addr->ss_len);
   return self;
 }
 
