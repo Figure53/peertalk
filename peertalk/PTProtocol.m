@@ -311,7 +311,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 
 - (void)readAndDiscardDataOfSize:(size_t)size overChannel:(dispatch_io_t)channel callback:(void(^)(NSError*, BOOL))callback {
   dispatch_io_read(channel, 0, size, queue_, ^(bool done, dispatch_data_t data, int error) {
-    if (done && callback && data) {
+    if (done && callback) {
       size_t dataSize = _pt_dispatch_data_get_size(data);
       callback(error == 0 ? nil : [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:error userInfo:nil], dataSize == 0);
     }
