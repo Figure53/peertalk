@@ -485,7 +485,8 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 - (void)scheduleReadPacketWithCallback:(void(^)(NSError*, NSDictionary*, uint32_t))callback {
   static usbmux_packet_t ref_upacket;
   isReadingPackets_ = YES;
-  
+
+  // Read the first `sizeof(ref_upacket.size)` bytes off the channel_
   dispatch_io_read(channel_, 0, sizeof(ref_upacket.size), queue_, ^(bool done, dispatch_data_t data, int error) {
     //NSLog(@"dispatch_io_read 0,4: done=%d data=%p error=%d", done, data, error);
     
@@ -525,9 +526,10 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
     // END DEBUG LOGGING
     
 #if DEBUG
-    assert(buffer_size == sizeof(ref_upacket.size));
+      assert(buffer_size == sizeof(ref_upacket.size));
+      assert(sizeof(upacket_len) == sizeof(ref_upacket.size));
 #else
-    if (buffer_size != sizeof(ref_upacket.size)) {
+    if (buffer_size != sizeof(ref_upacket.size) || sizeof(upacket_len) != sizeof(ref_upacket.size)) {
       callback([NSError errorWithDomain:PTUSBHubErrorDomain
                                    code:PTUSBHUBErrorCodeUnexpectedContent
                                userInfo:@{ NSLocalizedDescriptionKey : @"Unexpected USB packet received." }], nil, 0);
