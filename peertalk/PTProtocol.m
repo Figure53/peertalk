@@ -387,7 +387,7 @@ static void _release_queue_local_protocol(void *objcobj) {
   dispatch_release(contiguousData);
 #endif
   static const bool kDispatchDataRefKey;
-  objc_setAssociatedObject(newData, (const void*)kDispatchDataRefKey, dispatchDataRef, OBJC_ASSOCIATION_RETAIN);
+  objc_setAssociatedObject(newData, (const void * _Nonnull)kDispatchDataRefKey, dispatchDataRef, OBJC_ASSOCIATION_RETAIN);
   
   return newData;
 }

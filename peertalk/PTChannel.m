@@ -374,7 +374,13 @@ static const uint8_t kUserInfoKey;
   
   [self setDispatchSource:dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, fd, 0, protocol_.queue)];
   
-  dispatch_source_set_event_handler(dispatchObj_source_, ^{
+  if (!dispatchObj_source_) {
+      close(fd);
+      if (callback) callback([NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:nil]);
+      return;
+  }
+    
+  dispatch_source_set_event_handler((dispatch_source_t _Nonnull)dispatchObj_source_, ^{
     unsigned long nconns = dispatch_source_get_data(self->dispatchObj_source_);
     while ([self acceptIncomingConnection:fd] && --nconns);
   });
