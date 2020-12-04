@@ -61,7 +61,6 @@ static void _release_queue_local_protocol(void *objcobj) {
 
 + (PTProtocol*)sharedProtocolForQueue:(dispatch_queue_t)queue {
   static const char currentQueueFrameProtocolKey;
-  //dispatch_queue_t queue = dispatch_get_current_queue();
   PTProtocol *currentQueueFrameProtocol = (__bridge PTProtocol*)dispatch_queue_get_specific(queue, &currentQueueFrameProtocolKey);
   if (!currentQueueFrameProtocol) {
     currentQueueFrameProtocol = [[RQueueLocalIOFrameProtocol alloc] initWithDispatchQueue:NULL];
@@ -152,7 +151,6 @@ static void _release_queue_local_protocol(void *objcobj) {
   __block dispatch_data_t allData = NULL;
   
   dispatch_io_read(channel, 0, sizeof(PTFrame), queue_, ^(bool done, dispatch_data_t data, int error) {
-    //NSLog(@"dispatch_io_read: done=%d data=%p error=%d", done, data, error);
     size_t dataSize = _pt_dispatch_data_get_size(data);
     
     if (dataSize) {
@@ -205,7 +203,6 @@ static void _release_queue_local_protocol(void *objcobj) {
 - (void)readPayloadOfSize:(size_t)payloadSize overChannel:(dispatch_io_t)channel callback:(void(^)(NSError *error, dispatch_data_t contiguousData, const uint8_t *buffer, size_t bufferSize))callback {
   __block dispatch_data_t allData = NULL;
   dispatch_io_read(channel, 0, payloadSize, queue_, ^(bool done, dispatch_data_t data, int error) {
-    //NSLog(@"dispatch_io_read: done=%d data=%p error=%d", done, data, error);
     size_t dataSize = _pt_dispatch_data_get_size(data);
     
     if (dataSize) {
