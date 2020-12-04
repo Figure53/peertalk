@@ -431,8 +431,8 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
       return;
     }
     // TODO: timeout un-triggered callbacks in responseQueue_
-    if (!self->responseQueue_) self->responseQueue_ = [NSMutableDictionary new];
-    [self->responseQueue_ setObject:callback forKey:[NSNumber numberWithUnsignedInt:tag]];
+		if (!self->responseQueue_) self->responseQueue_ = [NSMutableDictionary new];
+		[self->responseQueue_ setObject:callback forKey:[NSNumber numberWithUnsignedInt:tag]];
   }];
   
   // We are awaiting a response
@@ -462,12 +462,12 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
       // Broadcast message
       //NSLog(@"Received broadcast: %@", packet);
       if (broadcastHandler) broadcastHandler(packet);
-    } else if (self->responseQueue_) {
+		} else if (self->responseQueue_) {
       // Reply
       NSNumber *key = [NSNumber numberWithUnsignedInt:packetTag];
-      void(^requestCallback)(NSError*,NSDictionary*) = [self->responseQueue_ objectForKey:key];
+			void(^requestCallback)(NSError*,NSDictionary*) = [self->responseQueue_ objectForKey:key];
       if (requestCallback) {
-        [self->responseQueue_ removeObjectForKey:key];
+				[self->responseQueue_ removeObjectForKey:key];
         requestCallback(error, packet);
       } else {
         NSLog(@"Warning: Ignoring reply packet for which there is no registered callback. Packet => %@", packet);
@@ -475,7 +475,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
     }
     
     // Schedule reading another incoming package
-    if (self->autoReadPackets_) {
+		if (self->autoReadPackets_) {
       [self scheduleReadPacketWithBroadcastHandler:broadcastHandler];
     }
   }];
@@ -494,7 +494,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
       return;
     
     if (error) {
-      self->isReadingPackets_ = NO;
+			self->isReadingPackets_ = NO;
       callback([[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:error userInfo:nil], nil, 0);
       return;
     }
@@ -558,7 +558,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
         return;
       }
       
-      self->isReadingPackets_ = NO;
+			self->isReadingPackets_ = NO;
       
       if (error) {
         callback([[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:error userInfo:nil], nil, 0);
@@ -568,7 +568,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 
       if (upacket_len > kUsbmuxPacketMaxPayloadSize) {
         callback(
-          [[NSError alloc] initWithDomain:PTUSBHubErrorDomain code:PTUSBHUBErrorCodeUnexpectedContent userInfo:@{
+          [[NSError alloc] initWithDomain:PTUSBHubErrorDomain code:PTUSBHUBErrorCodeBadCommand userInfo:@{
             NSLocalizedDescriptionKey:@"Received a packet that is too large"}],
           nil,
           0

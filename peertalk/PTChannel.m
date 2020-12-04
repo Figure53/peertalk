@@ -226,14 +226,14 @@ static const uint8_t kUserInfoKey;
     if (!error) {
       [self startReadingFromConnectedChannel:dispatchChannel error:&error];
     } else {
-      self->connState_ = kConnStateNone;
+			self->connState_ = kConnStateNone;
     }
     if (callback) callback(error);
   } onEnd:^(NSError *error) {
     if (self->delegateFlags_ & kDelegateFlagImplements_ioFrameChannel_didEndWithError) {
       [self->delegate_ ioFrameChannel:self didEndWithError:error];
     }
-    self->endError_ = nil;
+		self->endError_ = nil;
   }];
 }
 
@@ -297,7 +297,7 @@ static const uint8_t kUserInfoKey;
     if (self->delegateFlags_ & kDelegateFlagImplements_ioFrameChannel_didEndWithError) {
       NSError *err = error == 0 ? self->endError_ : [[NSError alloc] initWithDomain:NSPOSIXErrorDomain code:error userInfo:nil];
       [self->delegate_ ioFrameChannel:self didEndWithError:err];
-      self->endError_ = nil;
+			self->endError_ = nil;
     }
   });
   
@@ -385,13 +385,13 @@ static const uint8_t kUserInfoKey;
     while ([self acceptIncomingConnection:fd] && --nconns);
   });
   
-  dispatch_source_set_cancel_handler(dispatchObj_source_, ^{
+  dispatch_source_set_cancel_handler(self->dispatchObj_source_, ^{
     // Captures *self*, effectively holding a reference to *self* until cancelled.
-    self->dispatchObj_source_ = nil;
+		self->dispatchObj_source_ = nil;
     close(fd);
     if (self->delegateFlags_ & kDelegateFlagImplements_ioFrameChannel_didEndWithError) {
       [self->delegate_ ioFrameChannel:self didEndWithError:self->endError_];
-      self->endError_ = nil;
+			self->endError_ = nil;
     }
   });
   
@@ -509,7 +509,7 @@ static const uint8_t kUserInfoKey;
   BOOL(^handleError)(NSError*,BOOL) = ^BOOL(NSError *error, BOOL isEOS) {
     if (error) {
       //NSLog(@"Error while communicating: %@", error);
-      self->endError_ = error;
+			self->endError_ = error;
       [self close];
       return YES;
     } else if (isEOS) {
