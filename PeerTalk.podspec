@@ -11,8 +11,8 @@ Pod::Spec.new do |spec|
 
     spec.source   = { :git => "https://github.com/rsms/peertalk.git", :tag => "#{spec.version}" }
     spec.source_files = 'peertalk/*.{h,m}'
-    spec.ios.deployment_target = '14.0'
-    spec.osx.deployment_target = '11.0'
+    spec.ios.deployment_target = '9.0'
+    spec.osx.deployment_target = '10.10'
 
     spec.description = "PeerTalk is a iOS and OS X Cocoa library for communicating over USB and TCP.\n\n                    Highlights:\n\n                    * Provides you with USB device attach/detach events and attached device's info\n                    * Can connect to TCP services on supported attached devices (e.g. an iPhone), bridging the communication over USB transport\n                    * Offers a higher-level API (PTChannel and PTProtocol) for convenient implementations.\n* Tested and designed for libdispatch (aka Grand Central Dispatch).\n"
     
