@@ -39,15 +39,15 @@ FOUNDATION_EXPORT PTUSBHubNotificationKey const PTUSBHubNotificationKeyPropertie
 FOUNDATION_EXPORT NSString * const PTUSBHubErrorDomain;
 
 // Error codes returned with NSError.code for NSError domain PTUSBHubErrorDomain
-typedef NS_ENUM(NSUInteger, PTUSBHUBErrorCode)
+typedef NS_ENUM(NSUInteger, PTUSBHubError)
 {
-  PTUSBHUBErrorCodeUnexpectedContent = 0,
-  PTUSBHUBErrorCodeBadCommand = 1,
-  PTUSBHUBErrorCodeBadDevice = 2,
-  PTUSBHUBErrorCodeConnectionRefused = 3,
+  PTUSBHubErrorUnexpectedContent = 0,
+  PTUSBHubErrorBadCommand = 1,
+  PTUSBHubErrorBadDevice = 2,
+  PTUSBHubErrorConnectionRefused = 3,
   // ? = 4,
   // ? = 5,
-  PTUSBHUBErrorCodeBadVersion = 6,
+  PTUSBHubErrorBadVersion = 6,
 };
 
 @interface PTUSBHub : NSObject

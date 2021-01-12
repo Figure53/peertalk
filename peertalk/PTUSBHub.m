@@ -503,11 +503,8 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
     
     if ( buffer_size == 0 ) {
       callback([NSError errorWithDomain:PTUSBHubErrorDomain
-                                   code:PTUSBHUBErrorCodeUnexpectedContent
+                                   code:PTUSBHubErrorUnexpectedContent
                                userInfo:@{ NSLocalizedDescriptionKey : @"invalid buffer data (0)." }], nil, 0);
-#if PT_DISPATCH_RETAIN_RELEASE
-      dispatch_release(map_data);
-#endif
       return;
     }
     
@@ -527,11 +524,8 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 #else
     if (buffer_size != sizeof(ref_upacket.size) || sizeof(upacket_len) != sizeof(ref_upacket.size)) {
       callback([NSError errorWithDomain:PTUSBHubErrorDomain
-                                   code:PTUSBHUBErrorCodeUnexpectedContent
+                                   code:PTUSBHubErrorUnexpectedContent
                                userInfo:@{ NSLocalizedDescriptionKey : @"Unexpected USB packet received." }], nil, 0);
-#if PT_DISPATCH_RETAIN_RELEASE
-      dispatch_release(map_data);
-#endif
       return;
     }
 #endif
@@ -561,7 +555,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 
       if (upacket_len > kUsbmuxPacketMaxPayloadSize) {
         callback(
-          [[NSError alloc] initWithDomain:PTUSBHubErrorDomain code:PTUSBHUBErrorCodeBadCommand userInfo:@{
+          [[NSError alloc] initWithDomain:PTUSBHubErrorDomain code:PTUSBHubErrorBadCommand userInfo:@{
             NSLocalizedDescriptionKey:@"Received a packet that is too large"}],
           nil,
           0
@@ -580,11 +574,8 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 #else
       if (buffer_size != upacket->size - offset) {
         callback([NSError errorWithDomain:PTUSBHubErrorDomain
-                                     code:PTUSBHUBErrorCodeUnexpectedContent
+                                     code:PTUSBHubErrorUnexpectedContent
                                  userInfo:@{ NSLocalizedDescriptionKey : @"Unexpected package size." }], nil, upacket->tag);
-#if PT_DISPATCH_RETAIN_RELEASE
-        dispatch_release(map_data);
-#endif
         usbmux_packet_free(upacket);
         return;
       }
@@ -595,7 +586,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
       // We only support plist protocol
       if (upacket->protocol != USBMuxPacketProtocolPlist) {
         callback([[NSError alloc] initWithDomain:PTUSBHubErrorDomain
-                                            code:PTUSBHUBErrorCodeUnexpectedContent
+                                            code:PTUSBHubErrorUnexpectedContent
                                         userInfo:[NSDictionary dictionaryWithObject:@"Unexpected package protocol" forKey:NSLocalizedDescriptionKey]], nil, upacket->tag);
         usbmux_packet_free(upacket);
         return;
@@ -604,7 +595,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
       // Only one type of packet in the plist protocol
       if (upacket->type != USBMuxPacketTypePlistPayload) {
         callback([[NSError alloc] initWithDomain:PTUSBHubErrorDomain
-                                            code:PTUSBHUBErrorCodeUnexpectedContent
+                                            code:PTUSBHubErrorUnexpectedContent
                                         userInfo:[NSDictionary dictionaryWithObject:@"Unexpected package type" forKey:NSLocalizedDescriptionKey]], nil, upacket->tag);
         usbmux_packet_free(upacket);
         return;
