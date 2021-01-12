@@ -394,7 +394,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
   if (!*error) {
     NSNumber *n = [packet objectForKey:@"Number"];
     
-    if (n == nil) {
+    if (!n) {
       *error = [NSError errorWithDomain:PTUSBHubErrorDomain code:0 userInfo:nil];
       return NO;
     }
