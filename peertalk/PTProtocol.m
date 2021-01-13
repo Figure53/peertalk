@@ -2,6 +2,8 @@
 #import "PTPrivate.h"
 #import <objc/runtime.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 static const uint32_t PTProtocolVersion1 = 1;
 
 NSString * const PTProtocolErrorDomain = @"PTProtocolError";
@@ -29,7 +31,7 @@ typedef struct _PTFrame {
 @interface PTProtocol () {
   uint32_t nextFrameTag_;
   @public
-  dispatch_queue_t queue_;
+  dispatch_queue_t _Nullable queue_;
 }
 - (dispatch_data_t)createDispatchDataWithFrameOfType:(uint32_t)type frameTag:(uint32_t)frameTag payload:(dispatch_data_t)payload;
 @end
@@ -51,7 +53,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 @interface RQueueLocalIOFrameProtocol : PTProtocol
 @end
 @implementation RQueueLocalIOFrameProtocol
-- (void)setQueue:(dispatch_queue_t)queue {
+- (void)setQueue:(nullable dispatch_queue_t)queue {
 }
 @end
 
@@ -73,9 +75,11 @@ static void _release_queue_local_protocol(void *objcobj) {
 }
 
 
-- (id)initWithDispatchQueue:(dispatch_queue_t)queue {
-  if (!(self = [super init])) return nil;
-  queue_ = queue;
+- (id)initWithDispatchQueue:(nullable dispatch_queue_t)queue {
+  self = [super init];
+  if (self) {
+    queue_ = queue;
+  }
   return self;
 }
 
@@ -83,11 +87,11 @@ static void _release_queue_local_protocol(void *objcobj) {
   return [self initWithDispatchQueue:dispatch_get_main_queue()];
 }
 
-- (dispatch_queue_t)queue {
+- (nullable dispatch_queue_t)queue {
   return queue_;
 }
 
-- (void)setQueue:(dispatch_queue_t)queue {
+- (void)setQueue:(nullable dispatch_queue_t)queue {
   queue_ = queue;
 }
 
@@ -147,7 +151,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 #pragma mark Receiving frames
 
 
-- (void)readFrameOverChannel:(dispatch_io_t)channel callback:(void(^)(NSError *error, uint32_t frameType, uint32_t frameTag, uint32_t payloadSize))callback {
+- (void)readFrameOverChannel:(dispatch_io_t)channel callback:(void(^)(NSError * _Nullable error, uint32_t frameType, uint32_t frameTag, uint32_t payloadSize))callback {
   __block dispatch_data_t allData = NULL;
   
   dispatch_io_read(channel, 0, sizeof(PTFrame), queue_, ^(bool done, dispatch_data_t data, int error) {
@@ -200,7 +204,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 }
 
 
-- (void)readPayloadOfSize:(size_t)payloadSize overChannel:(dispatch_io_t)channel callback:(void(^)(NSError *error, dispatch_data_t contiguousData, const uint8_t *buffer, size_t bufferSize))callback {
+- (void)readPayloadOfSize:(size_t)payloadSize overChannel:(dispatch_io_t)channel callback:(void(^)(NSError * _Nullable error, dispatch_data_t _Nullable contiguousData, const uint8_t * _Nullable buffer, size_t bufferSize))callback {
   __block dispatch_data_t allData = NULL;
   dispatch_io_read(channel, 0, payloadSize, queue_, ^(bool done, dispatch_data_t data, int error) {
     size_t dataSize = _pt_dispatch_data_get_size(data);
@@ -272,8 +276,10 @@ static void _release_queue_local_protocol(void *objcobj) {
 @end
 @implementation _PTDispatchData
 - (id)initWithDispatchData:(dispatch_data_t)dispatchData {
-  if (!(self = [super init])) return nil;
-  dispatchData_ = dispatchData;
+  self = [super init];
+  if (self) {
+    dispatchData_ = dispatchData;
+  }
   return self;
 }
 @end
@@ -295,7 +301,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 
 #pragma clang diagnostic pop
 
-+ (NSData *)dataWithContentsOfDispatchData:(dispatch_data_t)data {
++ (nullable NSData *)dataWithContentsOfDispatchData:(dispatch_data_t)data {
   if (!data) {
     return nil;
   }
@@ -315,7 +321,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 }
 
 // Decode *data* as a peroperty list-encoded dictionary. Returns nil on failure.
-+ (NSDictionary *)dictionaryWithContentsOfData:(NSData *)data {
++ (nullable NSDictionary *)dictionaryWithContentsOfData:(NSData *)data {
 	if (!data) {
 		return nil;
 	}
@@ -327,7 +333,7 @@ static void _release_queue_local_protocol(void *objcobj) {
 
 @implementation NSDictionary (PTProtocol)
 
-- (dispatch_data_t)createReferencingDispatchData {
+- (nullable dispatch_data_t)createReferencingDispatchData {
   NSError *error = nil;
   NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:self format:NSPropertyListBinaryFormat_v1_0 options:0 error:&error];
   if (!plistData) {
@@ -338,3 +344,5 @@ static void _release_queue_local_protocol(void *objcobj) {
   }
 }
 @end
+
+NS_ASSUME_NONNULL_END

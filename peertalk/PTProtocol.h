@@ -15,6 +15,8 @@
 #include <dispatch/dispatch.h>
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 // Special frame tag that signifies "no tag". Your implementation should never
 // create a reply for a frame with this tag.
 static const uint32_t PTFrameNoTag = 0;
@@ -29,13 +31,13 @@ FOUNDATION_EXPORT NSString * const PTProtocolErrorDomain;
 @interface PTProtocol : NSObject
 
 // Queue on which to run data processing blocks.
-@property dispatch_queue_t queue;
+@property (nullable) dispatch_queue_t queue;
 
 // Get the shared protocol object for *queue*
 + (PTProtocol*)sharedProtocolForQueue:(dispatch_queue_t)queue;
 
 // Initialize a new protocol object to use a specific queue.
-- (id)initWithDispatchQueue:(dispatch_queue_t)queue;
+- (id)initWithDispatchQueue:(nullable dispatch_queue_t)queue;
 
 // Initialize a new protocol object to use the current calling queue.
 - (id)init;
@@ -71,7 +73,7 @@ FOUNDATION_EXPORT NSString * const PTProtocolErrorDomain;
 // Read a single frame over *channel*. A frame of type PTFrameTypeEndOfStream
 // denotes the stream has ended.
 - (void)readFrameOverChannel:(dispatch_io_t)channel
-                    callback:(void(^)(NSError *error,
+                    callback:(void(^)(NSError * _Nullable error,
                                       uint32_t frameType,
                                       uint32_t frameTag,
                                       uint32_t payloadSize))callback;
@@ -86,9 +88,9 @@ FOUNDATION_EXPORT NSString * const PTProtocolErrorDomain;
 // returning from the callback.
 - (void)readPayloadOfSize:(size_t)payloadSize
               overChannel:(dispatch_io_t)channel
-                 callback:(void(^)(NSError *error,
-                                   dispatch_data_t contiguousData,
-                                   const uint8_t *buffer,
+                 callback:(void(^)(NSError * _Nullable error,
+                                   dispatch_data_t _Nullable contiguousData,
+                                   const uint8_t * _Nullable buffer,
                                    size_t bufferSize))callback;
 
 // Discard data of *size* waiting on *channel*. *callback* can be NULL.
@@ -104,11 +106,13 @@ FOUNDATION_EXPORT NSString * const PTProtocolErrorDomain;
 // holds a reference to the recevier. It's the callers responsibility to call
 // dispatch_release on the returned object when done.
 - (dispatch_data_t)createReferencingDispatchData;
-+ (NSData *)dataWithContentsOfDispatchData:(dispatch_data_t)data;
-+ (NSDictionary *)dictionaryWithContentsOfData:(NSData *)data;
++ (nullable NSData *)dataWithContentsOfDispatchData:(dispatch_data_t)data;
++ (nullable NSDictionary *)dictionaryWithContentsOfData:(NSData *)data;
 @end
 
 @interface NSDictionary (PTProtocol)
 // See description of -[NSData(PTProtocol) createReferencingDispatchData]
-- (dispatch_data_t)createReferencingDispatchData;
+- (nullable dispatch_data_t)createReferencingDispatchData;
 @end
+
+NS_ASSUME_NONNULL_END

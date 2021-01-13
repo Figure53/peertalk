@@ -83,7 +83,7 @@
   if (connectedChannel_) {
     NSString *message = self.inputTextField.stringValue;
     dispatch_data_t payload = PTExampleTextDispatchDataWithString(message);
-    [connectedChannel_ sendFrameOfType:PTExampleFrameTypeTextMessage tag:PTFrameNoTag withPayload:(NSData *)payload callback:^(NSError *error) {
+    [connectedChannel_ sendFrameOfType:PTExampleFrameTypeTextMessage tag:PTFrameNoTag withPayload:(NSData *)payload callback:^(NSError * _Nullable error) {
       if (error) {
         NSLog(@"Failed to send message: %@", error);
       }
@@ -165,7 +165,7 @@
     NSNumber *tag = [NSNumber numberWithUnsignedInt:tagno];
     NSMutableDictionary *pingInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:[NSDate date], @"date created", nil];
     [pings_ setObject:pingInfo forKey:tag];
-    [connectedChannel_ sendFrameOfType:PTExampleFrameTypePing tag:tagno withPayload:nil callback:^(NSError *error) {
+    [connectedChannel_ sendFrameOfType:PTExampleFrameTypePing tag:tagno withPayload:nil callback:^(NSError * _Nullable error) {
       [self performSelector:@selector(ping) withObject:nil afterDelay:1.0];
       [pingInfo setObject:[NSDate date] forKey:@"date sent"];
       if (error) {
@@ -289,7 +289,7 @@
 - (void)connectToLocalIPv4Port {
   PTChannel *channel = [PTChannel channelWithDelegate:self];
   channel.userInfo = [NSString stringWithFormat:@"127.0.0.1:%d", PTExampleProtocolIPv4PortNumber];
-  [channel connectToPort:PTExampleProtocolIPv4PortNumber IPv4Address:INADDR_LOOPBACK callback:^(NSError *error, PTAddress *address) {
+  [channel connectToPort:PTExampleProtocolIPv4PortNumber IPv4Address:INADDR_LOOPBACK callback:^(NSError * _Nullable error, PTAddress * _Nullable address) {
     if (error) {
       if (error.domain == NSPOSIXErrorDomain && (error.code == ECONNREFUSED || error.code == ETIMEDOUT)) {
         // this is an expected state
@@ -321,7 +321,7 @@
   channel.userInfo = connectingToDeviceID_;
   channel.delegate = self;
   
-  [channel connectToPort:PTExampleProtocolIPv4PortNumber overUSBHub:PTUSBHub.sharedHub deviceID:connectingToDeviceID_ callback:^(NSError *error) {
+  [channel connectToPort:PTExampleProtocolIPv4PortNumber overUSBHub:PTUSBHub.sharedHub deviceID:connectingToDeviceID_ callback:^(NSError * _Nullable error) {
     if (error) {
       if (error.domain == PTUSBHubErrorDomain && error.code == PTUSBHubErrorConnectionRefused) {
         NSLog(@"Failed to connect to device #%@: %@", channel.userInfo, error);

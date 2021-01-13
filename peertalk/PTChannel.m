@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #import <objc/runtime.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 // Read member of sockaddr_in without knowing the family
 #define PT_SOCKADDR_ACCESS(ss, member4, member6) \
   (((ss)->ss_family == AF_INET) ? ( \
@@ -36,7 +38,7 @@
   dispatch_source_t dispatchObj_source_;
   NSError *endError_;              // 64 bit
 @public  // here be hacks
-  id<PTChannelDelegate> delegate_; // 64 bit
+  id<PTChannelDelegate> _Nullable delegate_; // 64 bit
   uint8_t delegateFlags_;             // 8 bit
 @private
   uint8_t connState_;                 // 8 bit
@@ -51,7 +53,7 @@ static const uint8_t kUserInfoKey;
 @interface PTAddress () {
   struct sockaddr_storage sockaddr_;
 }
-- (id)initWithSockaddr:(const struct sockaddr_storage*)addr;
+- (nullable id)initWithSockaddr:(const struct sockaddr_storage*)addr;
 @end
 
 #pragma mark -
@@ -59,15 +61,17 @@ static const uint8_t kUserInfoKey;
 
 @synthesize protocol = protocol_;
 
-+ (PTChannel*)channelWithDelegate:(id<PTChannelDelegate>)delegate {
++ (PTChannel*)channelWithDelegate:(nullable id<PTChannelDelegate>)delegate {
   return [[PTChannel alloc] initWithProtocol:nil delegate:delegate];
 }
 
 
-- (id)initWithProtocol:(PTProtocol *)protocol delegate:(id<PTChannelDelegate>)delegate {
-  if (!(self = [super init])) return nil;
-	protocol_ = protocol ? protocol : [PTProtocol sharedProtocolForQueue:dispatch_get_main_queue()];
-  self.delegate = delegate;
+- (id)initWithProtocol:(nullable PTProtocol *)protocol delegate:(nullable id<PTChannelDelegate>)delegate {
+  self = [super init];
+  if (self) {
+    protocol_ = protocol ? protocol : [PTProtocol sharedProtocolForQueue:dispatch_get_main_queue()];
+    self.delegate = delegate;
+  }
   return self;
 }
 
@@ -91,11 +95,11 @@ static const uint8_t kUserInfoKey;
 }
 
 
-- (id)userInfo {
+- (nullable id)userInfo {
   return objc_getAssociatedObject(self, (void*)&kUserInfoKey);
 }
 
-- (void)setUserInfo:(id)userInfo {
+- (void)setUserInfo:(nullable id)userInfo {
   objc_setAssociatedObject(self, (const void*)&kUserInfoKey, userInfo, OBJC_ASSOCIATION_RETAIN);
 }
 
@@ -105,7 +109,7 @@ static const uint8_t kUserInfoKey;
 }
 
 
-- (void)setDispatchChannel:(dispatch_io_t)channel {
+- (void)setDispatchChannel:(nullable dispatch_io_t)channel {
 #if DEBUG
   assert(connState_ == kConnStateConnecting || connState_ == kConnStateConnected || connState_ == kConnStateNone);
 #else
@@ -146,12 +150,12 @@ static const uint8_t kUserInfoKey;
 }
 
 
-- (id<PTChannelDelegate>)delegate {
+- (nullable id<PTChannelDelegate>)delegate {
   return delegate_;
 }
 
 
-- (void)setDelegate:(id<PTChannelDelegate>)delegate {
+- (void)setDelegate:(nullable id<PTChannelDelegate>)delegate {
   delegate_ = delegate;
   delegateFlags_ = 0;
   if (!delegate_) {
@@ -175,7 +179,7 @@ static const uint8_t kUserInfoKey;
 #pragma mark - Connecting
 
 
-- (void)connectToPort:(int)port overUSBHub:(PTUSBHub*)usbHub deviceID:(NSNumber*)deviceID callback:(void(^)(NSError *error))callback {
+- (void)connectToPort:(int)port overUSBHub:(PTUSBHub*)usbHub deviceID:(NSNumber*)deviceID callback:(void(^)(NSError * _Nullable error))callback {
 #if DEBUG
   assert(protocol_ != NULL);
 #else
@@ -189,7 +193,7 @@ static const uint8_t kUserInfoKey;
     return;
   }
   connState_ = kConnStateConnecting;
-  [usbHub connectToDevice:deviceID port:port onStart:^(NSError *err, dispatch_io_t dispatchChannel) {
+  [usbHub connectToDevice:deviceID port:port onStart:^(NSError *err, dispatch_io_t _Nullable dispatchChannel) {
     NSError *error = err;
     if (!error) {
       [self startReadingFromConnectedChannel:dispatchChannel error:&error];
@@ -197,7 +201,7 @@ static const uint8_t kUserInfoKey;
 			self->connState_ = kConnStateNone;
     }
     if (callback) callback(error);
-  } onEnd:^(NSError *error) {
+  } onEnd:^(NSError * _Nullable error) {
     if (self->delegateFlags_ & kDelegateFlagImplements_ioFrameChannel_didEndWithError) {
       [self->delegate_ ioFrameChannel:self didEndWithError:error];
     }
@@ -206,7 +210,7 @@ static const uint8_t kUserInfoKey;
 }
 
 
-- (void)connectToPort:(in_port_t)port IPv4Address:(in_addr_t)address callback:(void(^)(NSError *error, PTAddress *address))callback {
+- (void)connectToPort:(in_port_t)port IPv4Address:(in_addr_t)address callback:(void(^)(NSError * _Nullable error, PTAddress * _Nullable address))callback {
 #if DEBUG
   assert(protocol_ != NULL);
 #else
@@ -278,7 +282,7 @@ static const uint8_t kUserInfoKey;
 #pragma mark - Listening and serving
 
 
-- (void)listenOnPort:(in_port_t)port IPv4Address:(in_addr_t)address callback:(void(^)(NSError *error))callback {
+- (void)listenOnPort:(in_port_t)port IPv4Address:(in_addr_t)address callback:(void(^)(NSError * _Nullable error))callback {
 #if DEBUG
   assert(dispatchObj_source_ == nil);
 #else
@@ -505,7 +509,7 @@ static const uint8_t kUserInfoKey;
           }
         }];
       } else {
-        [self->protocol_ readPayloadOfSize:payloadSize overChannel:channel callback:^(NSError *error, dispatch_data_t contiguousData, const uint8_t *buffer, size_t bufferSize) {
+        [self->protocol_ readPayloadOfSize:payloadSize overChannel:channel callback:^(NSError * _Nullable error, dispatch_data_t _Nullable contiguousData, const uint8_t * _Nullable buffer, size_t bufferSize) {
           if (handleError(error, bufferSize == 0)) {
             return;
           }
@@ -527,7 +531,7 @@ static const uint8_t kUserInfoKey;
 
 #pragma mark - Sending
 
-- (void)sendFrameOfType:(uint32_t)frameType tag:(uint32_t)tag withPayload:(NSData *)payload callback:(void(^)(NSError *error))callback {
+- (void)sendFrameOfType:(uint32_t)frameType tag:(uint32_t)tag withPayload:(nullable NSData *)payload callback:(nullable void(^)(NSError * _Nullable error))callback {
   if (connState_ == kConnStateConnecting || connState_ == kConnStateConnected) {
 		dispatch_data_t payloadCopy = dispatch_data_create(payload.bytes, payload.length, NULL, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
     [protocol_ sendFrameOfType:frameType tag:tag withPayload:payloadCopy overChannel:dispatchObj_channel_ callback:callback];
@@ -554,7 +558,7 @@ static const uint8_t kUserInfoKey;
 #pragma mark -
 @implementation PTAddress
 
-- (id)initWithSockaddr:(const struct sockaddr_storage*)addr {
+- (nullable id)initWithSockaddr:(const struct sockaddr_storage*)addr {
 #if DEBUG
   assert(addr);
 #else
@@ -569,7 +573,7 @@ static const uint8_t kUserInfoKey;
 }
 
 
-- (NSString*)name {
+- (nullable NSString*)name {
   if (sockaddr_.ss_len) {
     const void *sin_addr = NULL;
     size_t bufsize = 0;
@@ -610,3 +614,5 @@ static const uint8_t kUserInfoKey;
 }
 
 @end
+
+NS_ASSUME_NONNULL_END

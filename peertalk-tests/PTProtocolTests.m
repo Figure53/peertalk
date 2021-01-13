@@ -100,14 +100,14 @@ static const uint32_t PTFrameTypeTestPingReply = PTFrameTypeTestPing - 1;
            expectedFrameTag:(uint32_t)expectedFrameTag
         expectedPayloadSize:(uint32_t)expectedPayloadSize
                    callback:(void(^)(dispatch_data_t contiguousData, const uint8_t *buffer, size_t bufferSize))callback {
-  [protocol_[clientIndex] readFrameOverChannel:channel_[clientIndex] callback:^(NSError *error, uint32_t receivedFrameType, uint32_t receivedFrameTag, uint32_t receivedPayloadSize) {
+  [protocol_[clientIndex] readFrameOverChannel:channel_[clientIndex] callback:^(NSError * _Nullable error, uint32_t receivedFrameType, uint32_t receivedFrameTag, uint32_t receivedPayloadSize) {
     if (error) XCTFail(@"readFrameOverChannel failed: %@", error);
     XCTAssertEqual(receivedFrameType, expectedFrameType);
     XCTAssertEqual(receivedFrameTag, expectedFrameTag);
     XCTAssertEqual(receivedPayloadSize, expectedPayloadSize);
     
     if (expectedPayloadSize != 0) {
-      [self->protocol_[clientIndex] readPayloadOfSize:receivedPayloadSize overChannel:self->channel_[clientIndex] callback:^(NSError *error, dispatch_data_t contiguousData, const uint8_t *buffer, size_t bufferSize) {
+      [self->protocol_[clientIndex] readPayloadOfSize:receivedPayloadSize overChannel:self->channel_[clientIndex] callback:^(NSError * _Nullable error, dispatch_data_t _Nullable contiguousData, const uint8_t * _Nullable buffer, size_t bufferSize) {
         PTAssertNotNULL(contiguousData);
         PTAssertNotNULL(buffer);
         XCTAssertEqual((uint32_t)bufferSize, receivedPayloadSize);
@@ -155,11 +155,11 @@ static const uint32_t PTFrameTypeTestPingReply = PTFrameTypeTestPing - 1;
   uint32_t frameTag = PTFrameNoTag;
   uint32_t payloadSize = 0;
 
-  [protocol_[0] sendFrameOfType:PTFrameTypeTestPing tag:frameTag withPayload:nil overChannel:channel_[0] callback:^(NSError *error) {
+  [protocol_[0] sendFrameOfType:PTFrameTypeTestPing tag:frameTag withPayload:nil overChannel:channel_[0] callback:^(NSError * _Nullable error) {
     if (error) XCTFail(@"sendFrameOfType failed: %@", error);
   }];
 
-  [protocol_[1] readFrameOverChannel:channel_[1] callback:^(NSError *error, uint32_t receivedFrameType, uint32_t receivedFrameTag, uint32_t receivedPayloadSize) {
+  [protocol_[1] readFrameOverChannel:channel_[1] callback:^(NSError * _Nullable error, uint32_t receivedFrameType, uint32_t receivedFrameTag, uint32_t receivedPayloadSize) {
     if (error) XCTFail(@"readFrameOverChannel failed: %@", error);
     XCTAssertEqual(receivedFrameType, PTFrameTypeTestPing);
     XCTAssertEqual(receivedFrameTag, frameTag);
@@ -179,25 +179,25 @@ static const uint32_t PTFrameTypeTestPingReply = PTFrameTypeTestPing - 1;
   uint32_t payloadSize = 0;
   
   // Send frame on channel 0
-  [protocol_[0] sendFrameOfType:PTFrameTypeTestPing tag:frameTag withPayload:nil overChannel:channel_[0] callback:^(NSError *error) {
+  [protocol_[0] sendFrameOfType:PTFrameTypeTestPing tag:frameTag withPayload:nil overChannel:channel_[0] callback:^(NSError * _Nullable error) {
     if (error) XCTFail(@"sendFrameOfType failed: %@", error);
   }];
   
   // Read frame on channel 1
-  [protocol_[1] readFrameOverChannel:channel_[1] callback:^(NSError *error, uint32_t receivedFrameType, uint32_t receivedFrameTag, uint32_t receivedPayloadSize) {
+  [protocol_[1] readFrameOverChannel:channel_[1] callback:^(NSError * _Nullable error, uint32_t receivedFrameType, uint32_t receivedFrameTag, uint32_t receivedPayloadSize) {
     if (error) XCTFail(@"readFrameOverChannel failed: %@", error);
     XCTAssertEqual(receivedFrameType, PTFrameTypeTestPing);
     XCTAssertEqual(receivedFrameTag, frameTag);
     XCTAssertEqual(receivedPayloadSize, payloadSize);
     
     // Reply on channel 1
-    [self->protocol_[1] sendFrameOfType:PTFrameTypeTestPingReply tag:receivedFrameTag withPayload:nil overChannel:self->channel_[1] callback:^(NSError *error) {
+    [self->protocol_[1] sendFrameOfType:PTFrameTypeTestPingReply tag:receivedFrameTag withPayload:nil overChannel:self->channel_[1] callback:^(NSError * _Nullable error) {
       if (error) XCTFail(@"sendFrameOfType failed: %@", error);
     }];
   }];
   
   // Read reply on channel 0 (we expect a reply)
-  [protocol_[0] readFrameOverChannel:channel_[0] callback:^(NSError *error, uint32_t receivedFrameType, uint32_t receivedFrameTag, uint32_t receivedPayloadSize) {
+  [protocol_[0] readFrameOverChannel:channel_[0] callback:^(NSError * _Nullable error, uint32_t receivedFrameType, uint32_t receivedFrameTag, uint32_t receivedPayloadSize) {
     if (error) XCTFail(@"readFrameOverChannel failed: %@", error);
     XCTAssertEqual(receivedFrameType, PTFrameTypeTestPingReply);
     XCTAssertEqual(receivedFrameTag, frameTag);
@@ -217,7 +217,7 @@ static const uint32_t PTFrameTypeTestPingReply = PTFrameTypeTestPing - 1;
   NSData *payloadData = [textMessage dataUsingEncoding:NSUTF8StringEncoding];
   dispatch_data_t payload = [payloadData createReferencingDispatchData];
   
-  [protocol_[0] sendFrameOfType:PTFrameTypeTestPing tag:PTFrameNoTag withPayload:payload overChannel:channel_[0] callback:^(NSError *error) {
+  [protocol_[0] sendFrameOfType:PTFrameTypeTestPing tag:PTFrameNoTag withPayload:payload overChannel:channel_[0] callback:^(NSError * _Nullable error) {
     if (error) XCTFail(@"sendFrameOfType failed: %@", error);
   }];
   
@@ -250,7 +250,7 @@ static const uint32_t PTFrameTypeTestPingReply = PTFrameTypeTestPing - 1;
   for (int i = 0; i < totalNumberOfFrames; ++i ) {
     frameTypes[i] = PTFrameTypeTestPing - i; // note: PTFrameTypeTest* are adjusted to UINT32_MAX, thus we subtract to avoid overflow
     tags[i] = [protocol_[0] newTag];
-    [protocol_[0] sendFrameOfType:frameTypes[i] tag:tags[i] withPayload:nil overChannel:channel_[0] callback:^(NSError *error) {
+    [protocol_[0] sendFrameOfType:frameTypes[i] tag:tags[i] withPayload:nil overChannel:channel_[0] callback:^(NSError * _Nullable error) {
       if (error) XCTFail(@"sendFrameOfType failed: %@", error);
     }];
   }
@@ -296,7 +296,7 @@ static const uint32_t PTFrameTypeTestPingReply = PTFrameTypeTestPing - 1;
       [payloadData addObject:[NSNull null]];
     }
     
-    [protocol_[0] sendFrameOfType:frameType tag:tag withPayload:payload overChannel:channel_[0] callback:^(NSError *error) {
+    [protocol_[0] sendFrameOfType:frameType tag:tag withPayload:payload overChannel:channel_[0] callback:^(NSError * _Nullable error) {
       if (error) XCTFail(@"sendFrameOfType failed: %@", error);
     }];
   }
@@ -326,7 +326,7 @@ static const uint32_t PTFrameTypeTestPingReply = PTFrameTypeTestPing - 1;
     };
     
     if (payloadSize) {
-      [self->protocol_[1] readPayloadOfSize:payloadSize overChannel:self->channel_[1] callback:^(NSError *error, dispatch_data_t contiguousData, const uint8_t *buffer, size_t bufferSize) {
+      [self->protocol_[1] readPayloadOfSize:payloadSize overChannel:self->channel_[1] callback:^(NSError * _Nullable error, dispatch_data_t _Nullable contiguousData, const uint8_t * _Nullable buffer, size_t bufferSize) {
         PTAssertNotNULL(contiguousData);
         PTAssertNotNULL(buffer);
         XCTAssertEqual((uint32_t)bufferSize, payloadSize);

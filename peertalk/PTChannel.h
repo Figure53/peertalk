@@ -32,7 +32,7 @@ PT_FINAL @interface PTChannel : NSObject
 
 // Arbitrary attachment. Note that if you set this, the object will grow by
 // 8 bytes (64 bits).
-@property (strong) id userInfo;
+@property (strong, nullable) id userInfo;
 
 // Create a new channel using the shared PTProtocol for the current dispatch
 // queue, with *delegate*.
@@ -87,7 +87,7 @@ PT_FINAL @interface PTChannel : NSObject
 // Represents a peer's address
 PT_FINAL @interface PTAddress : NSObject
 // For network addresses, this is the IP address in textual format
-@property (readonly) NSString *name;
+@property (readonly, nullable) NSString *name;
 // For network addresses, this is the port number. Otherwise 0 (zero).
 @property (readonly) NSInteger port;
 @end

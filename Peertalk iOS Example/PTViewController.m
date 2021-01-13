@@ -31,7 +31,7 @@ UITextFieldDelegate
   
   // Create a new channel that is listening on our IPv4 port
   PTChannel *channel = [PTChannel channelWithDelegate:self];
-  [channel listenOnPort:PTExampleProtocolIPv4PortNumber IPv4Address:INADDR_LOOPBACK callback:^(NSError *error) {
+  [channel listenOnPort:PTExampleProtocolIPv4PortNumber IPv4Address:INADDR_LOOPBACK callback:^(NSError * _Nullable error) {
     if (error) {
       [self appendOutputMessage:[NSString stringWithFormat:@"Failed to listen on 127.0.0.1:%d: %@", PTExampleProtocolIPv4PortNumber, error]];
     } else {
@@ -63,7 +63,7 @@ UITextFieldDelegate
 - (void)sendMessage:(NSString*)message {
   if (peerChannel_) {
     dispatch_data_t payload = PTExampleTextDispatchDataWithString(message);
-    [peerChannel_ sendFrameOfType:PTExampleFrameTypeTextMessage tag:PTFrameNoTag withPayload:(NSData *)payload callback:^(NSError *error) {
+    [peerChannel_ sendFrameOfType:PTExampleFrameTypeTextMessage tag:PTFrameNoTag withPayload:(NSData *)payload callback:^(NSError * _Nullable error) {
       if (error) {
         NSLog(@"Failed to send message: %@", error);
       }
@@ -110,7 +110,7 @@ UITextFieldDelegate
                         [NSNumber numberWithDouble:screen.scale], @"screenScale",
                         nil];
   dispatch_data_t payload = [info createReferencingDispatchData];
-  [peerChannel_ sendFrameOfType:PTExampleFrameTypeDeviceInfo tag:PTFrameNoTag withPayload:(NSData *)payload callback:^(NSError *error) {
+  [peerChannel_ sendFrameOfType:PTExampleFrameTypeDeviceInfo tag:PTFrameNoTag withPayload:(NSData *)payload callback:^(NSError * _Nullable error) {
     if (error) {
       NSLog(@"Failed to send PTExampleFrameTypeDeviceInfo: %@", error);
     }

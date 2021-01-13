@@ -7,6 +7,8 @@
 #include <sys/un.h>
 #include <err.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 NSString * const PTUSBHubErrorDomain = @"PTUSBHubError";
 
 typedef uint32_t USBMuxPacketType;
@@ -78,7 +80,7 @@ static usbmux_packet_t *usbmux_packet_alloc(uint32_t payloadSize) {
 }
 
 
-static usbmux_packet_t *usbmux_packet_create(USBMuxPacketProtocol protocol,
+static usbmux_packet_t * _Nullable usbmux_packet_create(USBMuxPacketProtocol protocol,
                                              USBMuxPacketType type,
                                              uint32_t tag,
                                              const void *payload,
@@ -161,16 +163,16 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 
 @interface PTUSBChannel (Private)
 
-+ (NSDictionary*)packetDictionaryWithPacketType:(NSString*)messageType payload:(NSDictionary*)payload;
-- (BOOL)openOnQueue:(dispatch_queue_t)queue error:(NSError**)error onEnd:(void(^)(NSError *error))onEnd;
++ (NSDictionary*)packetDictionaryWithPacketType:(NSString*)messageType payload:(nullable NSDictionary*)payload;
+- (BOOL)openOnQueue:(dispatch_queue_t)queue error:(NSError**)error onEnd:(nullable void(^)(NSError *error))onEnd;
 - (void)listenWithBroadcastHandler:(void(^)(NSDictionary *packet))broadcastHandler callback:(void(^)(NSError*))callback;
 - (BOOL)errorFromPlistResponse:(NSDictionary*)packet error:(NSError**)error;
 - (uint32_t)nextPacketTag;
 - (void)sendPacketOfType:(USBMuxPacketType)type overProtocol:(USBMuxPacketProtocol)protocol tag:(uint32_t)tag payload:(NSData*)payload callback:(void(^)(NSError*))callback;
 - (void)sendPacket:(NSDictionary*)packet tag:(uint32_t)tag callback:(void(^)(NSError *error))callback;
-- (void)sendRequest:(NSDictionary*)packet callback:(void(^)(NSError *error, NSDictionary *responsePacket))callback;
-- (void)scheduleReadPacketWithCallback:(void(^)(NSError *error, NSDictionary *packet, uint32_t packetTag))callback;
-- (void)scheduleReadPacketWithBroadcastHandler:(void(^)(NSDictionary *packet))broadcastHandler;
+- (void)sendRequest:(NSDictionary*)packet callback:(void(^)(NSError *error, NSDictionary * _Nullable responsePacket))callback;
+- (void)scheduleReadPacketWithCallback:(void(^)(NSError *error, NSDictionary * _Nullable packet, uint32_t packetTag))callback;
+- (void)scheduleReadPacketWithBroadcastHandler:(nullable void(^)(NSDictionary *packet))broadcastHandler;
 - (void)setNeedsReadingPacket;
 @end
 
@@ -190,7 +192,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     gSharedHub = [PTUSBHub new];
-    [gSharedHub listenOnQueue:dispatch_get_main_queue() onStart:^(NSError *error) {
+    [gSharedHub listenOnQueue:dispatch_get_main_queue() onStart:^(NSError * _Nullable error) {
       if (error) {
         NSLog(@"PTUSBHub failed to initialize: %@", error);
       }
@@ -201,13 +203,12 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 
 
 - (id)init {
-  if (!(self = [super init])) return nil;
-  
+  self = [super init];
   return self;
 }
 
 
-- (void)listenOnQueue:(dispatch_queue_t)queue onStart:(void(^)(NSError*))onStart onEnd:(void(^)(NSError*))onEnd {
+- (void)listenOnQueue:(dispatch_queue_t)queue onStart:(nullable void(^)(NSError * _Nullable))onStart onEnd:(nullable void(^)(NSError * _Nullable))onEnd {
   if (channel_) {
     if (onStart) onStart(nil);
     return;
@@ -222,7 +223,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 }
 
 
-- (void)connectToDevice:(NSNumber*)deviceID port:(int)port onStart:(void(^)(NSError*, dispatch_io_t))onStart onEnd:(void(^)(NSError*))onEnd {
+- (void)connectToDevice:(NSNumber*)deviceID port:(int)port onStart:(nullable void(^)(NSError*, dispatch_io_t _Nullable))onStart onEnd:(nullable void(^)(NSError * _Nullable))onEnd {
   PTUSBChannel *channel = [PTUSBChannel new];
   NSError *error = nil;
   
@@ -266,7 +267,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 
 @implementation PTUSBChannel
 
-+ (NSDictionary*)packetDictionaryWithPacketType:(NSString*)messageType payload:(NSDictionary*)payload {
++ (NSDictionary*)packetDictionaryWithPacketType:(NSString*)messageType payload:(nullable NSDictionary*)payload {
   NSDictionary *packet = nil;
   
   static NSString *bundleName = nil;
@@ -301,8 +302,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 
 
 - (id)init {
-  if (!(self = [super init])) return nil;
-  
+  self = [super init];
   return self;
 }
 
@@ -329,7 +329,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 }
 
 
-- (BOOL)openOnQueue:(dispatch_queue_t)queue error:(NSError**)error onEnd:(void(^)(NSError*))onEnd {
+- (BOOL)openOnQueue:(dispatch_queue_t)queue error:(NSError**)error onEnd:(nullable void(^)(NSError*))onEnd {
 #if DEBUG
   assert(queue != nil);
   assert(channel_ == nil);
@@ -422,7 +422,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 }
 
 
-- (void)sendRequest:(NSDictionary*)packet callback:(void(^)(NSError*, NSDictionary*))callback {
+- (void)sendRequest:(NSDictionary*)packet callback:(void(^)(NSError*, NSDictionary * _Nullable ))callback {
   uint32_t tag = [self nextPacketTag];
   [self sendPacket:packet tag:tag callback:^(NSError *error) {
     if (error) {
@@ -446,7 +446,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 }
 
 
-- (void)scheduleReadPacketWithBroadcastHandler:(void(^)(NSDictionary *packet))broadcastHandler {
+- (void)scheduleReadPacketWithBroadcastHandler:(nullable void(^)(NSDictionary *packet))broadcastHandler {
 #if DEBUG
   assert(isReadingPackets_ == NO);
 #else
@@ -480,7 +480,7 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 }
 
 
-- (void)scheduleReadPacketWithCallback:(void(^)(NSError*, NSDictionary*, uint32_t))callback {
+- (void)scheduleReadPacketWithCallback:(void(^)(NSError*, NSDictionary* _Nullable, uint32_t))callback {
   static usbmux_packet_t ref_upacket;
   isReadingPackets_ = YES;
 
@@ -706,3 +706,5 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
 }
 
 @end
+
+NS_ASSUME_NONNULL_END
